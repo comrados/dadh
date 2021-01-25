@@ -24,8 +24,8 @@ class Default(object):
     bit = 64  # hash code length
     lr = 0.00005  # initial learning rate
 
-    # device = 'cuda:0'
-    device = 'cpu'
+    device = 'cuda:0'
+    # device = 'cpu'
 
     # hyper-parameters
     alpha = 10
