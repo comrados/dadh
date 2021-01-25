@@ -124,9 +124,12 @@ class GEN(torch.nn.Module):
     def save(self, name=None, path='./checkpoints', cuda_device=None):
         if not os.path.exists(path):
             os.makedirs(path)
+        print(cuda_device)
         if cuda_device == 'cpu':
+            print('going cpu')
             torch.save(self.state_dict(), os.path.join(path, name))
         else:
+            print('going cuda')
             with torch.cuda.device(cuda_device):
                 torch.save(self.state_dict(), os.path.join(path, name))
         return name
