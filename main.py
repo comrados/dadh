@@ -324,7 +324,10 @@ def load_model(model, path):
 
 def save_model(model):
     path = 'checkpoints/' + opt.dataset + '_' + str(opt.bit)
-    model.save(model.module_name + '.pth', path, cuda_device=opt.device)
+    if opt.device == 'cpu':
+        model.save(model.module_name + '.pth', path)
+    else:
+        model.save(model.module_name + '.pth', path, cuda_device=opt.device)
 
 
 if __name__ == '__main__':
