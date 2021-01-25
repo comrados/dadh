@@ -4,9 +4,8 @@
 #SBATCH --ntasks=2
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=16G
-#SBATCH --partition=gpu_short
-#SBATCH --time=4:00:00
-#SBATCH --gres=gpu:tesla:1
+#SBATCH --partition=TestAndBuild
+#SBATCH --time=5:00:00
 
 echo "Loading venv..."
 source /home/users/m/mikriukov/venvs/DADH/bin/activate
