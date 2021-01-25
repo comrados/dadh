@@ -125,7 +125,7 @@ class GEN(torch.nn.Module):
         if not os.path.exists(path):
             os.makedirs(path)
         print(cuda_device)
-        if cuda_device == 'cpu':
+        if cuda_device.type == 'cpu':
             print('going cpu')
             torch.save(self.state_dict(), os.path.join(path, name))
         else:
