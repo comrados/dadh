@@ -323,13 +323,13 @@ def load_model(model, path):
 
 
 def save_model(model):
-    path = 'checkpoints/' + opt.dataset + '_' + str(opt.bit)
+    path = 'checkpoints/' + opt.dataset + '_' + str(opt.bit) + str(opt.proc)
     model.save(model.module_name + '.pth', path, cuda_device=opt.device)
 
 
 if __name__ == '__main__':
-    #import fire
-    #fire.Fire()
-    train(flag="ucm")
+    import fire
+    fire.Fire()
+    #train(flag="ucm")
 
 

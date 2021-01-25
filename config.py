@@ -37,6 +37,8 @@ class Default(object):
     margin = 0.4
     dropout = False
 
+    proc = None
+
     def data(self, flag):
         if flag == 'mir':
             self.dataset = 'flickr25k'
@@ -70,6 +72,8 @@ class Default(object):
         for k, v in kwargs.items():
             if k == 'flag':
                 self.data(v)
+            if k == 'proc':
+                self.proc = v
             if not hasattr(self, k):
                 warnings.warn("Warning: opt has no attribute %s" % k)
             setattr(self, k, v)
