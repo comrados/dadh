@@ -56,7 +56,7 @@ class Default(object):
             self.training_size = 10000
         if flag == 'ucm':
             self.dataset = 'ucm'
-            self.data_path = r'/media/george/Data/RS data/dataset_UCM_with_embeddings.h5'
+            self.data_path = './data/dataset_UCM_with_embeddings_reduced.h5'
             self.db_size = 9450
             self.num_label = 21
             self.query_size = 1050
