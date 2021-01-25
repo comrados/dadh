@@ -74,6 +74,8 @@ class Default(object):
                 self.data(v)
             if k == 'proc':
                 self.proc = v
+            if k == 'device':
+                self.device = v
             if not hasattr(self, k):
                 warnings.warn("Warning: opt has no attribute %s" % k)
             setattr(self, k, v)

@@ -11,4 +11,4 @@ echo "Loading venv..."
 source /home/users/m/mikriukov/venvs/DADH/bin/activate
 
 echo "Executing..."
-python3 main.py train --flag ucm --proc nogpu
+python3 main.py train --flag ucm --proc nogpu --device cpu
