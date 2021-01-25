@@ -6,7 +6,6 @@
 #SBATCH --mem=16G
 #SBATCH --partition=TestAndBuild
 #SBATCH --time=5:00:00
-#SBATCH --gres=gpu:tesla:1
 
 echo "Loading venv..."
 source /home/users/m/mikriukov/venvs/DADH/bin/activate
