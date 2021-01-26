@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH -o /home/users/m/mikriukov/projects/dadh/out_gpu_short_test.log
+#SBATCH -o /home/users/m/mikriukov/projects/dadh/out_gpu_short.log
 #SBATCH -J dadh
 #SBATCH --ntasks=2
 #SBATCH --cpus-per-task=4
