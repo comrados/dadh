@@ -263,7 +263,8 @@ def test(**kwargs):
 
     # pretrain_model = load_pretrain_model(opt.pretrain_model_path)
 
-    generator = GEN(opt.image_dim, opt.text_dim, opt.hidden_dim, opt.bit, opt.num_label).to(opt.device)
+    # generator = GEN(opt.image_dim, opt.text_dim, opt.hidden_dim, opt.bit, opt.num_label).to(opt.device)
+    generator = GEN(opt.dropout, opt.image_dim, opt.text_dim, opt.hidden_dim, opt.bit, opt.num_label).to(opt.device)
 
     path = 'checkpoints/' + opt.dataset + '_' + str(opt.bit) + str(opt.proc)
     load_model(generator, path)
