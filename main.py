@@ -171,7 +171,7 @@ def train(**kwargs):
             loss_quant = i_ql + t_ql
             err = opt.alpha * weighted_cos_tri + opt.beta * loss_quant + opt.gamma * (loss_adver_feature + loss_adver_hash)
 
-            print((opt.alpha * weighted_cos_tri).numpy(), (opt.beta * loss_quant).numpy(), (opt.gamma * (loss_adver_feature + loss_adver_hash)).numpy())
+            print((opt.alpha * weighted_cos_tri).cpu().numpy(), (opt.beta * loss_quant).cpu().numpy(), (opt.gamma * (loss_adver_feature + loss_adver_hash)).cpu().numpy())
 
             optimizer.zero_grad()
             err.backward()
