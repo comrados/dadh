@@ -2,12 +2,32 @@ import torch
 import numpy as np
 
 
+def sample_ucm(select_samples_per_class=50, num_classes=21, elements_in_class=500, seed=42):
+    """
+    Selects 'samples_per_class' elements from each of 'num_classes' classes.
+    
+    :param select_samples_per_class: how many samples to select from class
+    :param num_classes: number of classes
+    :param elements_in_class: elements in each class (balanced case)
+    :param seed: sampling seed
+    :return: indices of selected samples
+    """
+    np.random.seed(seed)
+    selected = []
+    # 21 class, 500 samples each
+    for i in range(num_classes):
+        # select 50 random samples from each class
+        c = i * elements_in_class + np.random.choice(elements_in_class, select_samples_per_class, replace=False)
+        selected.append(c)
+    return np.sort(np.array(selected).reshape(-1))  # reshape to 1d array
+
+
 class Dataset(torch.utils.data.Dataset):
     def __init__(self, opt, images, tags, labels, test=None):
         self.test = test
         all_index = np.arange(tags.shape[0])
         if opt.flag == 'ucm':
-            query_index = [i for i in range(0, len(images), 10)]  # each 10th element
+            query_index = sample_ucm(seed=42)  # select 50 out of 500 elements for each of 21 classes
             training_index = list(set(range(len(images))) - set(query_index))  # each 1st-9th elements
             db_index = training_index
         elif opt.flag == 'mir':

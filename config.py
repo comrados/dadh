@@ -15,14 +15,14 @@ class Default(object):
 
     batch_size = 128
     image_dim = 4096
-    hidden_dim = 4096
+    hidden_dim = 2048
     modals = 2
     valid = True  # whether to use validation
     valid_freq = 1
     max_epoch = 300
 
     bit = 64  # hash code length
-    lr = 0.0001  # initial learning rate
+    lr = 0.00005  # initial learning rate
 
     device = 'cuda:0'
     # device = 'cpu'
