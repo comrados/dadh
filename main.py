@@ -85,7 +85,7 @@ def train(**kwargs):
     for epoch in range(opt.max_epoch):
         t1 = time.time()
         e_loss = 0
-        print('...epoch: %3d' % str(epoch + 1))
+        print('...epoch: {}'.format(epoch + 1))
         for i, (ind, img, txt, label) in tqdm(enumerate(train_dataloader)):
             imgs = img.to(opt.device)
             txt = txt.to(opt.device)
