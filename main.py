@@ -85,6 +85,7 @@ def train(**kwargs):
     for epoch in range(opt.max_epoch):
         t1 = time.time()
         e_loss = 0
+        print('...epoch: %3d' % str(epoch + 1))
         for i, (ind, img, txt, label) in tqdm(enumerate(train_dataloader)):
             imgs = img.to(opt.device)
             txt = txt.to(opt.device)
@@ -170,7 +171,7 @@ def train(**kwargs):
             loss_quant = i_ql + t_ql
             err = opt.alpha * weighted_cos_tri + opt.beta * loss_quant + opt.gamma * (loss_adver_feature + loss_adver_hash)
 
-            print(weighted_cos_tri, loss_quant, loss_adver_feature, loss_adver_hash)
+            print((opt.alpha * weighted_cos_tri).numpy(), (opt.beta * loss_quant).numpy(), (opt.gamma * (loss_adver_feature + loss_adver_hash)).numpy())
 
             optimizer.zero_grad()
             err.backward()

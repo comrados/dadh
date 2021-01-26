@@ -29,7 +29,7 @@ class Default(object):
 
     # hyper-parameters
     alpha = 10
-    gamma = 1
+    gamma = 10
     beta = 1
     mu = 0.00001
     lamb = 1
