@@ -19,9 +19,9 @@ class DIS(torch.nn.Module):
         )
 
         self.hash_dis = nn.Sequential(
-            nn.Linear(self.hash_dim, 512, bias=True),
+            nn.Linear(self.hash_dim, self.hash_dim * 2, bias=True),
             nn.ReLU(True),
-            nn.Linear(512, 1, bias=True)
+            nn.Linear(self.hash_dim * 2, 1, bias=True)
         )
 
         self.weight_init()

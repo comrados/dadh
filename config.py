@@ -15,11 +15,11 @@ class Default(object):
 
     batch_size = 128
     image_dim = 4096
-    hidden_dim = 8192
+    hidden_dim = 4096
     modals = 2
     valid = True  # whether to use validation
     valid_freq = 1
-    max_epoch = 100
+    max_epoch = 300
 
     bit = 64  # hash code length
     lr = 0.0001  # initial learning rate
@@ -35,7 +35,7 @@ class Default(object):
     lamb = 1
 
     margin = 0.4
-    dropout = False
+    dropout = True
 
     proc = None
 
