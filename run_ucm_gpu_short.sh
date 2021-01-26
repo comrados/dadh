@@ -14,5 +14,8 @@ source /home/users/m/mikriukov/venvs/DADH/bin/activate
 echo "Loading cuda..."
 module load nvidia/cuda/10.1
 
-echo "Executing..."
+echo "Training..."
 python3 main.py train --flag ucm --proc short
+
+echo "Testing..."
+python3 main.py test --flag ucm --proc short
