@@ -265,7 +265,7 @@ def test(**kwargs):
 
     generator = GEN(opt.image_dim, opt.text_dim, opt.hidden_dim, opt.bit, opt.num_label).to(opt.device)
 
-    path = 'checkpoints/' + opt.dataset + '_' + str(opt.bit)
+    path = 'checkpoints/' + opt.dataset + '_' + str(opt.bit) + str(opt.proc)
     load_model(generator, path)
 
     generator.eval()
