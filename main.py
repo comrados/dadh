@@ -15,6 +15,7 @@ import pickle
 
 
 def train(**kwargs):
+    since = time.time()
     opt.parse(kwargs)
 
     if opt.vis_env:
@@ -167,8 +168,9 @@ def train(**kwargs):
             i_ql = torch.sum(torch.pow(B_i[ind, :] - h_i, 2))
             t_ql = torch.sum(torch.pow(B_t[ind, :] - h_t, 2))
             loss_quant = i_ql + t_ql
-            err = opt.alpha * weighted_cos_tri + \
-                  opt.beta * loss_quant + opt.gamma * (loss_adver_feature + loss_adver_hash)
+            err = opt.alpha * weighted_cos_tri + opt.beta * loss_quant + opt.gamma * (loss_adver_feature + loss_adver_hash)
+
+            print(weighted_cos_tri, loss_quant, loss_adver_feature, loss_adver_hash)
 
             optimizer.zero_grad()
             err.backward()
@@ -217,7 +219,9 @@ def train(**kwargs):
     if not opt.valid:
         save_model(generator)
 
-    print('...training procedure finish')
+    time_elapsed = time.time() - since
+    print('Training complete in {:.0f}m {:.0f}s'.format(time_elapsed // 60, time_elapsed % 60))
+
     if opt.valid:
         print('   max MAP: MAP(i->t): %3.4f, MAP(t->i): %3.4f' % (max_mapi2t, max_mapt2i))
     else:
@@ -225,8 +229,8 @@ def train(**kwargs):
                                query_labels, db_labels)
         print('   max MAP: MAP(i->t): %3.4f, MAP(t->i): %3.4f' % (mapi2t, mapt2i))
 
-    path = 'checkpoints/' + opt.dataset + '_' + str(opt.bit)
-    with open(os.path.join(path, 'result.pkl'), 'wb') as f:
+    path = 'checkpoints/' + opt.dataset + '_' + str(opt.bit) + str(opt.proc)
+    with open(path + '_result.pkl', 'wb') as f:
         pickle.dump([train_times, mapi2t_list, mapt2i_list], f)
 
 
