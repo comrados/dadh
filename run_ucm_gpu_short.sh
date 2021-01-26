@@ -15,4 +15,4 @@ echo "Loading cuda..."
 module load nvidia/cuda/10.1
 
 echo "Executing..."
-python3 main.py test --flag ucm --proc short
+python3 main.py train --flag ucm --proc short
