@@ -188,7 +188,7 @@ def train(**kwargs):
         B_t = (L @ P_t + opt.mu * H_t).sign()
         loss.append(e_loss.item())
         delta_t = time.time() - t1
-        print('...epoch: {:3d}, time, {:.0f}m {:.0f}s, loss: {:3.3f}'.format(epoch + 1, delta_t // 60, delta_t % 60, loss[-1]))
+        print('Epoch: {:4d}/{:4d}, time, {:3.3f}s, loss: {:10.3f}'.format(epoch + 1, opt.max_epoch, delta_t, loss[-1]))
 
         if opt.vis_env:
             vis.plot('loss', loss[-1])
@@ -197,7 +197,8 @@ def train(**kwargs):
         if opt.valid and (epoch + 1) % opt.valid_freq == 0:
             mapi2t, mapt2i = valid(generator, i_query_dataloader, i_db_dataloader, t_query_dataloader, t_db_dataloader,
                                    query_labels, db_labels)
-            print('...epoch: %3d, valid MAP: MAP(i->t): %3.4f, MAP(t->i): %3.4f' % (epoch + 1, mapi2t, mapt2i))
+
+            print('Epoch: {:4d}/{:4d}, validation MAP: MAP(i->t) = {:3.4f}, MAP(t->i) = {:3.4f}'.format(epoch + 1, opt.max_epoch, mapi2t, mapt2i))
 
             mapi2t_list.append(mapi2t)
             mapt2i_list.append(mapt2i)
