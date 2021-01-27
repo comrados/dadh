@@ -21,7 +21,7 @@ def train(**kwargs):
     if opt.vis_env:
         vis = Visualizer(opt.vis_env, port=opt.vis_port)
 
-    if opt.device is None or opt.device is 'cpu':
+    if (opt.device is None) or (opt.device == 'cpu'):
         opt.device = torch.device('cpu')
     else:
         opt.device = torch.device(opt.device)
@@ -187,8 +187,8 @@ def train(**kwargs):
         B_i = (L @ P_i + opt.mu * H_i).sign()
         B_t = (L @ P_t + opt.mu * H_t).sign()
         loss.append(e_loss.item())
-        print('...epoch: %3d, loss: %3.3f' % (epoch + 1, loss[-1]))
         delta_t = time.time() - t1
+        print('...epoch: {:3d}, time, {:.0f}m {:.0f}s, loss: {:3.3f}'.format(epoch + 1, delta_t // 60, delta_t % 60, loss[-1]))
 
         if opt.vis_env:
             vis.plot('loss', loss[-1])
@@ -300,7 +300,8 @@ def test(**kwargs):
 def generate_img_code(model, test_dataloader, num):
     B = torch.zeros(num, opt.bit).to(opt.device)
 
-    for i, input_data in tqdm(enumerate(test_dataloader)):
+    # for i, input_data in tqdm(enumerate(test_dataloader)):
+    for i, input_data in enumerate(test_dataloader):
         input_data = input_data.to(opt.device)
         b = model.generate_img_code(input_data)
         idx_end = min(num, (i + 1) * opt.batch_size)
@@ -313,7 +314,8 @@ def generate_img_code(model, test_dataloader, num):
 def generate_txt_code(model, test_dataloader, num):
     B = torch.zeros(num, opt.bit).to(opt.device)
 
-    for i, input_data in tqdm(enumerate(test_dataloader)):
+    # for i, input_data in tqdm(enumerate(test_dataloader)):
+    for i, input_data in enumerate(test_dataloader):
         input_data = input_data.to(opt.device)
         b = model.generate_txt_code(input_data)
         idx_end = min(num, (i + 1) * opt.batch_size)
