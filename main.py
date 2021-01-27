@@ -68,6 +68,7 @@ def train(**kwargs):
     tri_loss = TripletLoss(opt, reduction='sum')
 
     loss = []
+    losses = []
 
     max_mapi2t = 0.
     max_mapt2i = 0.
@@ -85,6 +86,7 @@ def train(**kwargs):
     for epoch in range(opt.max_epoch):
         t1 = time.time()
         e_loss = 0
+        e_losses = {'adv': 0, 'tri': 0, 'quant': 0}
         # for i, (ind, img, txt, label) in tqdm(enumerate(train_dataloader)):
         for i, (ind, img, txt, label) in enumerate(train_dataloader):
             imgs = img.to(opt.device)
@@ -171,6 +173,9 @@ def train(**kwargs):
             loss_quant = i_ql + t_ql
             err = opt.alpha * weighted_cos_tri + opt.beta * loss_quant + opt.gamma * (loss_adver_feature + loss_adver_hash)
 
+            e_losses['adv'] += (opt.gamma * (loss_adver_feature + loss_adver_hash)).cpu().detach().numpy()
+            e_losses['tri'] += (opt.alpha * weighted_cos_tri).cpu().detach().numpy()
+            e_losses['quant'] += (opt.beta * loss_quant).cpu().detach().numpy()
             #print((opt.alpha * weighted_cos_tri).cpu().detach().numpy(), (opt.beta * loss_quant).cpu().detach().numpy(), (opt.gamma * (loss_adver_feature + loss_adver_hash)).cpu().detach().numpy())
 
             optimizer.zero_grad()
@@ -187,8 +192,10 @@ def train(**kwargs):
         B_i = (L @ P_i + opt.mu * H_i).sign()
         B_t = (L @ P_t + opt.mu * H_t).sign()
         loss.append(e_loss.item())
+        e_losses['sum'] = sum(e_losses.values())
+        losses.append(e_losses)
         delta_t = time.time() - t1
-        print('Epoch: {:4d}/{:4d}, time, {:3.3f}s, loss: {:10.3f}'.format(epoch + 1, opt.max_epoch, delta_t, loss[-1]))
+        print('Epoch: {:4d}/{:4d}, time, {:3.3f}s, loss: {:15.3f},'.format(epoch + 1, opt.max_epoch, delta_t, loss[-1]) + 5 * ' ' + 'losses:', e_losses)
 
         if opt.vis_env:
             vis.plot('loss', loss[-1])
@@ -217,6 +224,9 @@ def train(**kwargs):
         if epoch % 100 == 0:
             for params in optimizer.param_groups:
                 params['lr'] = max(params['lr'] * 0.8, 1e-6)
+
+        if epoch % 100 == 0:
+            pass
 
     if not opt.valid:
         save_model(generator)
