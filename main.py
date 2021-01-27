@@ -222,7 +222,7 @@ def train(**kwargs):
         save_model(generator)
 
     time_elapsed = time.time() - since
-    print('Training complete in {:.0f}m {:.0f}s'.format(time_elapsed // 60, time_elapsed % 60))
+    print('\n   Training complete in {:.0f}m {:.0f}s'.format(time_elapsed // 60, time_elapsed % 60))
 
     if opt.valid:
         print('   Max MAP: MAP(i->t) = {:3.4f}, MAP(t->i) = {:3.4f}'.format(max_mapi2t, max_mapt2i))
