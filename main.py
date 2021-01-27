@@ -120,9 +120,7 @@ def train(**kwargs):
             interpolates = alpha * f_i.detach() + (1 - alpha) * f_t.detach()
             interpolates.requires_grad_()
             disc_interpolates = discriminator.dis_feature(interpolates)
-            gradients = autograd.grad(outputs=disc_interpolates, inputs=interpolates,
-                                      grad_outputs=torch.ones(disc_interpolates.size()).to(opt.device),
-                                      create_graph=True, retain_graph=True, only_inputs=True)[0]
+            gradients = autograd.grad(outputs=disc_interpolates, inputs=interpolates, grad_outputs=torch.ones(disc_interpolates.size()).to(opt.device), create_graph=True, retain_graph=True, only_inputs=True)[0]
             gradients = gradients.view(gradients.size(0), -1)
             # 10 is gradient penalty hyperparameter
             feature_gradient_penalty = ((gradients.norm(2, dim=1) - 1) ** 2).mean() * 10
@@ -148,9 +146,7 @@ def train(**kwargs):
             interpolates = alpha * h_i.detach() + (1 - alpha) * h_t.detach()
             interpolates.requires_grad_()
             disc_interpolates = discriminator.dis_hash(interpolates)
-            gradients = autograd.grad(outputs=disc_interpolates, inputs=interpolates,
-                                      grad_outputs=torch.ones(disc_interpolates.size()).to(opt.device),
-                                      create_graph=True, retain_graph=True, only_inputs=True)[0]
+            gradients = autograd.grad(outputs=disc_interpolates, inputs=interpolates, grad_outputs=torch.ones(disc_interpolates.size()).to(opt.device), create_graph=True, retain_graph=True, only_inputs=True)[0]
             gradients = gradients.view(gradients.size(0), -1)
 
             hash_gradient_penalty = ((gradients.norm(2, dim=1) - 1) ** 2).mean() * 10
@@ -184,10 +180,8 @@ def train(**kwargs):
 
             e_loss = err + e_loss
 
-        P_i = torch.inverse(
-                L.t() @ L + opt.lamb * torch.eye(opt.num_label, device=opt.device)) @ L.t() @ B_i
-        P_t = torch.inverse(
-                L.t() @ L + opt.lamb * torch.eye(opt.num_label, device=opt.device)) @ L.t() @ B_t
+        P_i = torch.inverse(L.t() @ L + opt.lamb * torch.eye(opt.num_label, device=opt.device)) @ L.t() @ B_i
+        P_t = torch.inverse(L.t() @ L + opt.lamb * torch.eye(opt.num_label, device=opt.device)) @ L.t() @ B_t
 
         B_i = (L @ P_i + opt.mu * H_i).sign()
         B_t = (L @ P_t + opt.mu * H_t).sign()
@@ -202,8 +196,7 @@ def train(**kwargs):
 
         # validate
         if opt.valid and (epoch + 1) % opt.valid_freq == 0:
-            mapi2t, mapt2i = valid(generator, i_query_dataloader, i_db_dataloader, t_query_dataloader, t_db_dataloader,
-                                   query_labels, db_labels)
+            mapi2t, mapt2i = valid(generator, i_query_dataloader, i_db_dataloader, t_query_dataloader, t_db_dataloader, query_labels, db_labels)
 
             print('Epoch: {:4d}/{:4d}, validation MAP: MAP(i->t) = {:3.4f}, MAP(t->i) = {:3.4f}'.format(epoch + 1, opt.max_epoch, mapi2t, mapt2i))
 
@@ -237,17 +230,15 @@ def train(**kwargs):
     if opt.valid:
         print('   Max MAP: MAP(i->t) = {:3.4f}, MAP(t->i) = {:3.4f}'.format(max_mapi2t, max_mapt2i))
     else:
-        mapi2t, mapt2i = valid(generator, i_query_dataloader, i_db_dataloader, t_query_dataloader, t_db_dataloader,
-                               query_labels, db_labels)
+        mapi2t, mapt2i = valid(generator, i_query_dataloader, i_db_dataloader, t_query_dataloader, t_db_dataloader, query_labels, db_labels)
         print('   Max MAP: MAP(i->t) = {:3.4f}, MAP(t->i) = {:3.4f}'.format(mapi2t, mapt2i))
 
     path = 'checkpoints/' + opt.dataset + '_' + str(opt.bit) + str(opt.proc)
-    with open(path + '_result.pkl', 'wb') as f:
-        pickle.dump([train_times, mapi2t_list, mapt2i_list], f)
+    with open(os.path.join(path, 'result.pkl'), 'wb') as f:
+        pickle.dump([train_times, mapi2t_list, mapt2i_list, losses], f)
 
 
-def valid(model, x_query_dataloader, x_db_dataloader, y_query_dataloader, y_db_dataloader,
-          query_labels, db_labels):
+def valid(model, x_query_dataloader, x_db_dataloader, y_query_dataloader, y_db_dataloader, query_labels, db_labels):
     model.eval()
 
     qBX = generate_img_code(model, x_query_dataloader, opt.query_size)

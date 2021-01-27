@@ -19,9 +19,9 @@ class Default(object):
     modals = 2
     valid = True  # whether to use validation
     valid_freq = 1
-    max_epoch = 310
+    max_epoch = 300
 
-    bit = 16  # hash code length
+    bit = 64  # hash code length
     lr = 0.00005  # initial learning rate
 
     device = 'cuda:0'
