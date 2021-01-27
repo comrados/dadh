@@ -225,11 +225,11 @@ def train(**kwargs):
     print('Training complete in {:.0f}m {:.0f}s'.format(time_elapsed // 60, time_elapsed % 60))
 
     if opt.valid:
-        print('   max MAP: MAP(i->t): %3.4f, MAP(t->i): %3.4f' % (max_mapi2t, max_mapt2i))
+        print('   Max MAP: MAP(i->t) = {:3.4f}, MAP(t->i) = {:3.4f}'.format(max_mapi2t, max_mapt2i))
     else:
         mapi2t, mapt2i = valid(generator, i_query_dataloader, i_db_dataloader, t_query_dataloader, t_db_dataloader,
                                query_labels, db_labels)
-        print('   max MAP: MAP(i->t): %3.4f, MAP(t->i): %3.4f' % (mapi2t, mapt2i))
+        print('   Max MAP: MAP(i->t) = {:3.4f}, MAP(t->i) = {:3.4f}'.format(mapi2t, mapt2i))
 
     path = 'checkpoints/' + opt.dataset + '_' + str(opt.bit) + str(opt.proc)
     with open(path + '_result.pkl', 'wb') as f:
@@ -295,7 +295,7 @@ def test(**kwargs):
 
     mapi2t = calc_map_k(qBX, rBY, query_labels, db_labels)
     mapt2i = calc_map_k(qBY, rBX, query_labels, db_labels)
-    print('...test MAP: MAP(i->t): %3.4f, MAP(t->i): %3.4f' % (mapi2t, mapt2i))
+    print('   Test MAP: MAP(i->t) = {:3.4f}, MAP(t->i) = {:3.4f}'.format(mapi2t, mapt2i))
 
 
 def generate_img_code(model, test_dataloader, num):
