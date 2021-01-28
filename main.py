@@ -180,14 +180,16 @@ def train(**kwargs):
 
             e_loss = err + e_loss
 
+        loss.append(e_loss.item())
+        e_losses['sum'] = sum(e_losses.values())
+        losses.append(e_losses)
+
         P_i = torch.inverse(L.t() @ L + opt.lamb * torch.eye(opt.num_label, device=opt.device)) @ L.t() @ B_i
         P_t = torch.inverse(L.t() @ L + opt.lamb * torch.eye(opt.num_label, device=opt.device)) @ L.t() @ B_t
 
         B_i = (L @ P_i + opt.mu * H_i).sign()
         B_t = (L @ P_t + opt.mu * H_t).sign()
-        loss.append(e_loss.item())
-        e_losses['sum'] = sum(e_losses.values())
-        losses.append(e_losses)
+
         delta_t = time.time() - t1
         print('Epoch: {:4d}/{:4d}, time, {:3.3f}s, loss: {:15.3f},'.format(epoch + 1, opt.max_epoch, delta_t, loss[-1]) + 5 * ' ' + 'losses:', e_losses)
 
