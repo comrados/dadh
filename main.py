@@ -211,12 +211,17 @@ def train(**kwargs):
                 max_mapt2i = mapt2i
                 max_average = 0.5 * (mapi2t + mapt2i)
                 save_model(generator)
+                path = 'checkpoints/' + opt.dataset + '_' + str(opt.bit) + str(opt.proc)
+                with torch.cuda.device(opt.device):
+                    torch.save([P_i, P_t], os.path.join(path, 'feature_maps_i_t.pth'))
+                with torch.cuda.device(opt.device):
+                    torch.save([B_i, B_t], os.path.join(path, 'code_maps_i_t.pth'))
 
             if opt.vis_env:
                 vis.plot('mapi2t', mapi2t)
                 vis.plot('mapt2i', mapt2i)
 
-        if epoch % 100 == 0:
+        if epoch % 50 == 0:
             for params in optimizer.param_groups:
                 params['lr'] = max(params['lr'] * 0.8, 1e-6)
 
