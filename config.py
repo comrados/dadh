@@ -22,7 +22,7 @@ class Default(object):
     max_epoch = 100
 
     bit = 32  # hash code length
-    lr = 0.00001  # initial learning rate
+    lr = 0.00005  # initial learning rate
 
     device = 'cuda:0'
     # device = 'cpu'
@@ -42,7 +42,7 @@ class Default(object):
     def data(self, flag):
         if flag == 'mir':
             self.dataset = 'flickr25k'
-            self.data_path = r'/media/george/Data/RS data/FLICKR-25K.mat'
+            self.data_path = './data/FLICKR-25K.mat'
             self.db_size = 18015
             self.num_label = 24
             self.query_size = 2000
@@ -63,7 +63,7 @@ class Default(object):
             self.num_label = 21
             self.query_size = 1050
             self.text_dim = 266
-            self.training_size = 9450
+            self.training_size = 5250
 
     def parse(self, kwargs):
         """

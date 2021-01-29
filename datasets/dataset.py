@@ -2,7 +2,7 @@ import torch
 import numpy as np
 
 
-def sample_ucm(select_samples_per_class=50, num_classes=21, elements_in_class=500, seed=42):
+def sample_ucm_query(select_samples_per_class=50, num_classes=21, elements_in_class=500, seed=42):
     """
     Selects 'samples_per_class' elements from each of 'num_classes' classes.
     
@@ -22,14 +22,30 @@ def sample_ucm(select_samples_per_class=50, num_classes=21, elements_in_class=50
     return np.sort(np.array(selected).reshape(-1))  # reshape to 1d array
 
 
+def sample_ucm_train(db_index, select_samples_per_class=250, num_classes=21, elements_in_class=450, seed=42):
+    np.random.seed(seed)
+    train_idx = []
+    # 21 class, 500 samples each
+    for i in range(num_classes):
+        # select 50 random samples from each class
+        c = i * elements_in_class + np.random.choice(elements_in_class, select_samples_per_class, replace=False)
+        train_idx.append(c)
+    train_idx = np.sort(np.array(train_idx).reshape(-1))
+    return list(np.array(db_index)[train_idx])
+
+
 class Dataset(torch.utils.data.Dataset):
     def __init__(self, opt, images, tags, labels, test=None):
         self.test = test
         all_index = np.arange(tags.shape[0])
-        if opt.flag == 'ucm':
-            query_index = sample_ucm(seed=42)  # select 50 out of 500 elements for each of 21 classes
-            training_index = list(set(range(len(images))) - set(query_index))  # each 1st-9th elements
-            db_index = training_index
+        if opt.flag == 'ucm_':
+            query_index = sample_ucm_query(seed=42)  # select 50 out of 500 elements for each of 21 classes
+            db_index = list(set(range(len(images))) - set(query_index))
+            training_index = sample_ucm_train(db_index, seed=42)
+        elif opt.flag == 'ucm':
+            query_index = all_index[opt.db_size:]
+            training_index = all_index[:opt.training_size]
+            db_index = all_index[:opt.db_size]
         elif opt.flag == 'mir':
             query_index = all_index[opt.db_size:]
             training_index = all_index[:opt.training_size]

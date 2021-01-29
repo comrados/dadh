@@ -35,12 +35,17 @@ def load_nus_wide(path_dir):
 
 def load_ucm(path):
     with h5py.File(path, "r") as hf:
+        np.random.seed(42)
         images = hf['images'][:]
         images = (images - images.mean()) / images.std()
         labels = hf['labels'][:]
         tags = hf['bow'][:]
         images = duplicate_data(images, 5)  # 5 times more captions than images
         labels = duplicate_data(labels, 5)  # 5 times more captions than labels
+        perm = np.random.permutation(len(images))
+        images = images[perm]
+        labels = labels[perm]
+        tags = tags[perm]
     return images, tags, labels
 
 

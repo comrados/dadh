@@ -8,10 +8,11 @@ from models.dis_model import DIS
 from models.gen_model import GEN
 from triplet_loss import *
 from torch.optim import Adam
-from utils import calc_map_k, Visualizer
+from utils import calc_map_k, pr_curve, p_topK, Visualizer
 from datasets.data_handler import load_data, load_pretrain_model
 import time
 import pickle
+import numpy as np
 
 
 def train(**kwargs):
@@ -300,6 +301,21 @@ def test(**kwargs):
     query_labels, db_labels = i_query_data.get_labels()
     query_labels = query_labels.to(opt.device)
     db_labels = db_labels.to(opt.device)
+
+    p_i2t, r_i2t = pr_curve(qBX, rBY, query_labels, db_labels)
+    p_t2i, r_t2i = pr_curve(qBY, rBX, query_labels, db_labels)
+
+    K = [1, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000]
+    pk_i2t = p_topK(qBX, rBY, query_labels, db_labels, K)
+    pk_t2i = p_topK(qBY, rBX, query_labels, db_labels, K)
+
+    path = 'checkpoints/' + opt.dataset + '_' + str(opt.bit) + str(opt.proc)
+    np.save(os.path.join(path, 'P_i2t.npy'), p_i2t.numpy())
+    np.save(os.path.join(path, 'R_i2t.npy'), r_i2t.numpy())
+    np.save(os.path.join(path, 'P_t2i.npy'), p_t2i.numpy())
+    np.save(os.path.join(path, 'R_t2i.npy'), r_t2i.numpy())
+    np.save(os.path.join(path, 'P_at_K_i2t.npy'), pk_i2t.numpy())
+    np.save(os.path.join(path, 'P_at_K_t2i.npy'), pk_t2i.numpy())
 
     mapi2t = calc_map_k(qBX, rBY, query_labels, db_labels)
     mapt2i = calc_map_k(qBY, rBX, query_labels, db_labels)
