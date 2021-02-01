@@ -21,7 +21,7 @@ class Default(object):
     valid_freq = 1
     max_epoch = 100
 
-    bit = 32  # hash code length
+    bit = 64  # hash code length
     lr = 0.00005  # initial learning rate
 
     device = 'cuda:0'
@@ -56,7 +56,7 @@ class Default(object):
             self.query_size = 2100
             self.text_dim = 1000
             self.training_size = 10000
-        if flag == 'ucm':
+        if flag == 'ucm' or 'ucmml':
             self.dataset = 'ucm'
             self.data_path = './data/dataset_UCM_with_embeddings_reduced.h5'
             self.db_size = 9450
@@ -64,6 +64,11 @@ class Default(object):
             self.query_size = 1050
             self.text_dim = 266
             self.training_size = 5250
+        if flag == 'ucmml':
+            self.data_path = './data/dataset_UCM_multi_label.h5'
+            self.num_label = 17
+            self.flag = 'ucm'
+
 
     def parse(self, kwargs):
         """
