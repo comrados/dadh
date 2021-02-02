@@ -73,10 +73,14 @@ def train(**kwargs):
 
     max_mapi2t = 0.
     max_mapt2i = 0.
+    max_mapi2i = 0.
+    max_mapt2t = 0.
     max_average = 0.
 
     mapt2i_list = []
     mapi2t_list = []
+    mapi2i_list = []
+    mapt2t_list = []
     train_times = []
 
     B_i = torch.randn(opt.training_size, opt.bit).sign().to(opt.device)
@@ -199,17 +203,20 @@ def train(**kwargs):
 
         # validate
         if opt.valid and (epoch + 1) % opt.valid_freq == 0:
-            mapi2t, mapt2i = valid(generator, i_query_dataloader, i_db_dataloader, t_query_dataloader, t_db_dataloader, query_labels, db_labels)
-
-            print('Epoch: {:4d}/{:4d}, validation MAP: MAP(i->t) = {:3.4f}, MAP(t->i) = {:3.4f}'.format(epoch + 1, opt.max_epoch, mapi2t, mapt2i))
+            mapi2t, mapt2i, mapi2i, mapt2t = valid(generator, i_query_dataloader, i_db_dataloader, t_query_dataloader, t_db_dataloader, query_labels, db_labels)
+            print('Epoch: {:4d}/{:4d}, validation MAP: MAP(i->t) = {:3.4f}, MAP(t->i) = {:3.4f}, MAP(i->i) = {:3.4f}, MAP(t->t) = {:3.4f}'.format(epoch + 1, opt.max_epoch, mapi2t, mapt2i, mapi2i, mapt2t))
 
             mapi2t_list.append(mapi2t)
             mapt2i_list.append(mapt2i)
+            mapi2i_list.append(mapi2i)
+            mapt2t_list.append(mapt2t)
             train_times.append(delta_t)
 
             if 0.5 * (mapi2t + mapt2i) > max_average:
                 max_mapi2t = mapi2t
                 max_mapt2i = mapt2i
+                max_mapi2i = mapi2i
+                max_mapt2t = mapt2t
                 max_average = 0.5 * (mapi2t + mapt2i)
                 save_model(generator)
                 path = 'checkpoints/' + opt.dataset + '_' + str(opt.bit) + str(opt.proc)
@@ -236,14 +243,14 @@ def train(**kwargs):
     print('\n   Training complete in {:.0f}m {:.0f}s'.format(time_elapsed // 60, time_elapsed % 60))
 
     if opt.valid:
-        print('   Max MAP: MAP(i->t) = {:3.4f}, MAP(t->i) = {:3.4f}'.format(max_mapi2t, max_mapt2i))
+        print('   Max MAP: MAP(i->t) = {:3.4f}, MAP(t->i) = {:3.4f}, MAP(i->i) = {:3.4f}, MAP(t->t) = {:3.4f}'.format(max_mapi2t, max_mapt2i, max_mapi2i, max_mapt2t))
     else:
-        mapi2t, mapt2i = valid(generator, i_query_dataloader, i_db_dataloader, t_query_dataloader, t_db_dataloader, query_labels, db_labels)
-        print('   Max MAP: MAP(i->t) = {:3.4f}, MAP(t->i) = {:3.4f}'.format(mapi2t, mapt2i))
+        mapi2t, mapt2i, mapi2i, mapt2t = valid(generator, i_query_dataloader, i_db_dataloader, t_query_dataloader, t_db_dataloader, query_labels, db_labels)
+        print('   Max MAP: MAP(i->t) = {:3.4f}, MAP(t->i) = {:3.4f}, MAP(i->i) = {:3.4f}, MAP(t->t) = {:3.4f}'.format(mapi2t, mapt2i, mapi2i, mapt2t))
 
     path = 'checkpoints/' + opt.dataset + '_' + str(opt.bit) + str(opt.proc)
     with open(os.path.join(path, 'result.pkl'), 'wb') as f:
-        pickle.dump([train_times, mapi2t_list, mapt2i_list, losses], f)
+        pickle.dump([train_times, mapi2t_list, mapt2i_list, mapi2i_list, mapt2t_list, losses], f)
 
 
 def valid(model, x_query_dataloader, x_db_dataloader, y_query_dataloader, y_db_dataloader, query_labels, db_labels):
@@ -257,8 +264,11 @@ def valid(model, x_query_dataloader, x_db_dataloader, y_query_dataloader, y_db_d
     mapi2t = calc_map_k(qBX, rBY, query_labels, db_labels)
     mapt2i = calc_map_k(qBY, rBX, query_labels, db_labels)
 
+    mapi2i = calc_map_k(qBX, rBX, query_labels, db_labels)
+    mapt2t = calc_map_k(qBY, rBY, query_labels, db_labels)
+
     model.train()
-    return mapi2t.item(), mapt2i.item()
+    return mapi2t.item(), mapt2i.item(), mapi2i.item(), mapt2t.item()
 
 
 def test(**kwargs):
