@@ -15,7 +15,7 @@ echo "Loading cuda..."
 module load nvidia/cuda/10.1
 
 echo "Training..."
-python3 main.py train --flag ucm --proc short
+python3 main.py train --flag ucm --proc short --bit 128
 
 echo "Testing..."
-python3 main.py test --flag ucm --proc short
+python3 main.py test --flag ucm --proc short --bit 128
