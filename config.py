@@ -56,18 +56,14 @@ class Default(object):
             self.query_size = 2100
             self.text_dim = 1000
             self.training_size = 10000
-        if flag == 'ucm' or 'ucmml':
+        if flag == 'ucm':
             self.dataset = 'ucm'
-            self.data_path = './data/dataset_UCM_with_embeddings_reduced.h5'
+            self.data_path = './data/resnet18_UCM_multi_label.h5'
             self.db_size = 9450
-            self.num_label = 21
+            self.num_label = 17
             self.query_size = 1050
             self.text_dim = 266
             self.training_size = 5250
-        if flag == 'ucmml':
-            self.data_path = './data/dataset_UCM_multi_label.h5'
-            self.num_label = 17
-            self.flag = 'ucm'
 
 
     def parse(self, kwargs):
@@ -81,6 +77,8 @@ class Default(object):
                 self.proc = v
             if k == 'device':
                 self.device = v
+            if k == 'bit':
+                self.bit = int(v)
             if not hasattr(self, k):
                 warnings.warn("Warning: opt has no attribute %s" % k)
             setattr(self, k, v)
