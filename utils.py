@@ -1,6 +1,7 @@
 import torch
 import numpy as np
 import visdom
+import pickle
 
 
 def calc_hamming_dist(B1, B2):
@@ -85,6 +86,11 @@ def p_topK(qB, rB, query_label, retrieval_label, K):
             p[i] += gnd_.sum() / total
     p = torch.Tensor(p) / num_query
     return p
+
+
+def write_pickle(path, data):
+    with open(path, 'wb') as f:
+        pickle.dump(data, f)
 
 
 class Visualizer(object):

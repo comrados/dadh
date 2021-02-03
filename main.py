@@ -8,7 +8,7 @@ from models.dis_model import DIS
 from models.gen_model import GEN
 from triplet_loss import *
 from torch.optim import Adam
-from utils import calc_map_k, pr_curve, p_topK, Visualizer
+from utils import calc_map_k, pr_curve, p_topK, Visualizer, write_pickle
 from datasets.data_handler import load_data, load_pretrain_model
 import time
 import pickle
@@ -248,9 +248,15 @@ def train(**kwargs):
         mapi2t, mapt2i, mapi2i, mapt2t = valid(generator, i_query_dataloader, i_db_dataloader, t_query_dataloader, t_db_dataloader, query_labels, db_labels)
         print('   Max MAP: MAP(i->t) = {:3.4f}, MAP(t->i) = {:3.4f}, MAP(i->i) = {:3.4f}, MAP(t->t) = {:3.4f}'.format(mapi2t, mapt2i, mapi2i, mapt2t))
 
+    res_dict = {'mapi2t': mapi2t_list,
+                'mapt2i': mapt2i_list,
+                'mapi2i': mapi2i_list,
+                'mapt2t': mapt2t_list,
+                'epoch_times': train_times,
+                'losses': losses}
+
     path = 'checkpoints/' + opt.dataset + '_' + str(opt.bit) + str(opt.proc)
-    with open(os.path.join(path, 'result.pkl'), 'wb') as f:
-        pickle.dump([train_times, mapi2t_list, mapt2i_list, mapi2i_list, mapt2t_list, losses], f)
+    write_pickle(os.path.join(path, 'res_dict.pkl'), res_dict)
 
 
 def valid(model, x_query_dataloader, x_db_dataloader, y_query_dataloader, y_db_dataloader, query_labels, db_labels):
@@ -314,22 +320,42 @@ def test(**kwargs):
 
     p_i2t, r_i2t = pr_curve(qBX, rBY, query_labels, db_labels)
     p_t2i, r_t2i = pr_curve(qBY, rBX, query_labels, db_labels)
+    p_i2i, r_i2i = pr_curve(qBX, rBX, query_labels, db_labels)
+    p_t2t, r_t2t = pr_curve(qBY, rBY, query_labels, db_labels)
 
     K = [1, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000]
     pk_i2t = p_topK(qBX, rBY, query_labels, db_labels, K)
     pk_t2i = p_topK(qBY, rBX, query_labels, db_labels, K)
-
-    path = 'checkpoints/' + opt.dataset + '_' + str(opt.bit) + str(opt.proc)
-    np.save(os.path.join(path, 'P_i2t.npy'), p_i2t.numpy())
-    np.save(os.path.join(path, 'R_i2t.npy'), r_i2t.numpy())
-    np.save(os.path.join(path, 'P_t2i.npy'), p_t2i.numpy())
-    np.save(os.path.join(path, 'R_t2i.npy'), r_t2i.numpy())
-    np.save(os.path.join(path, 'P_at_K_i2t.npy'), pk_i2t.numpy())
-    np.save(os.path.join(path, 'P_at_K_t2i.npy'), pk_t2i.numpy())
+    pk_i2i = p_topK(qBX, rBX, query_labels, db_labels, K)
+    pk_t2t = p_topK(qBY, rBY, query_labels, db_labels, K)
 
     mapi2t = calc_map_k(qBX, rBY, query_labels, db_labels)
     mapt2i = calc_map_k(qBY, rBX, query_labels, db_labels)
-    print('   Test MAP: MAP(i->t) = {:3.4f}, MAP(t->i) = {:3.4f}'.format(mapi2t, mapt2i))
+    mapi2i = calc_map_k(qBX, rBX, query_labels, db_labels)
+    mapt2t = calc_map_k(qBY, rBY, query_labels, db_labels)
+
+    pr_dict = {'pi2t': p_i2t.numpy(), 'ri2t': r_i2t.numpy(),
+               'pt2i': p_t2i.numpy(), 'rt2i': r_t2i.numpy(),
+               'pi2i': p_i2i.numpy(), 'ri2i': r_i2i.numpy(),
+               'pt2t': p_t2t.numpy(), 'rt2t': r_t2t.numpy()}
+
+    pk_dict = {'k': K,
+               'pki2t': pk_i2t.numpy(),
+               'pkt2i': pk_t2i.numpy(),
+               'pki2i': pk_i2i.numpy(),
+               'pkt2t': pk_t2t.numpy()}
+
+    map_dict = {'mapi2t': float(mapi2t.cpu().numpy()),
+                'mapt2i': float(mapt2i.cpu().numpy()),
+                'mapi2i': float(mapi2i.cpu().numpy()),
+                'mapt2t': float(mapt2t.cpu().numpy())}
+
+    print('   Test MAP: MAP(i->t) = {:3.4f}, MAP(t->i) = {:3.4f}, MAP(i->i) = {:3.4f}, MAP(t->t) = {:3.4f}'.format(mapi2t, mapt2i, mapi2i, mapt2t))
+
+    path = 'checkpoints/' + opt.dataset + '_' + str(opt.bit) + str(opt.proc)
+    write_pickle(os.path.join(path, 'pr_dict.pkl'), pr_dict)
+    write_pickle(os.path.join(path, 'pk_dict.pkl'), pk_dict)
+    write_pickle(os.path.join(path, 'map_dict.pkl'), map_dict)
 
 
 def generate_img_code(model, test_dataloader, num):

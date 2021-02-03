@@ -65,7 +65,6 @@ class Default(object):
             self.text_dim = 266
             self.training_size = 5250
 
-
     def parse(self, kwargs):
         """
         update configuration by kwargs.
