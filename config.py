@@ -58,11 +58,11 @@ class Default(object):
             self.training_size = 10000
         if flag == 'ucm':
             self.dataset = 'ucm'
-            self.data_path = './data/resnet18_UCM_multi_label.h5'
+            self.data_path = './data/UCM_resnet18_bert_sum_12.h5'
             self.db_size = 9450
             self.num_label = 17
             self.query_size = 1050
-            self.text_dim = 266
+            self.text_dim = 768
             self.training_size = 5250
 
     def parse(self, kwargs):
