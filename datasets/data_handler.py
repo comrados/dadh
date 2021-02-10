@@ -6,7 +6,7 @@ import scipy.io as scio
 
 def load_data(path, type='ucm'):
     print('Loading', type)
-    if type == 'ucm':
+    if type == 'ucm' or type == 'rsicd':
         return load_ucm(path)
     elif type == 'flickr25k':
         return load_flickr25k(path)

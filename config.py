@@ -13,7 +13,7 @@ class Default(object):
     vis_port = 8097  # visdom port
     flag = 'mir'
 
-    batch_size = 128
+    batch_size = 256
     image_dim = 4096
     hidden_dim = 2048
     modals = 2
@@ -64,6 +64,14 @@ class Default(object):
             self.query_size = 1050
             self.text_dim = 768
             self.training_size = 5250
+        if flag == 'rsicd':
+            self.dataset = 'rsicd'
+            self.data_path = '/home/george/Downloads/RSICD_resnet18_bert_sum_12.h5'
+            self.db_size = 50000
+            self.num_label = 31
+            self.query_size = 4605
+            self.text_dim = 768
+            self.training_size = 30000
 
     def parse(self, kwargs):
         """
