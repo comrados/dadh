@@ -22,14 +22,14 @@ class Default(object):
     max_epoch = 100
 
     bit = 64  # hash code length
-    lr = 0.00005  # initial learning rate
+    lr = 0.0001  # initial learning rate
 
     device = 'cuda:0'
     # device = 'cpu'
 
     # hyper-parameters
     alpha = 0.1
-    gamma = 10
+    gamma = 20
     beta = 0.01
     mu = 0.00001
     lamb = 1
@@ -67,11 +67,11 @@ class Default(object):
         if flag == 'rsicd':
             self.dataset = 'rsicd'
             self.data_path = '/home/george/Downloads/RSICD_resnet18_bert_sum_12.h5'
-            self.db_size = 50000
+            self.db_size = 52000
             self.num_label = 31
-            self.query_size = 4605
+            self.query_size = 2605
             self.text_dim = 768
-            self.training_size = 30000
+            self.training_size = 50000
 
     def parse(self, kwargs):
         """

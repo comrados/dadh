@@ -8,7 +8,7 @@ from models.dis_model import DIS
 from models.gen_model import GEN
 from triplet_loss import *
 from torch.optim import Adam
-from utils import calc_map_k, pr_curve, p_topK, Visualizer, write_pickle
+from utils import calc_map_k, pr_curve, p_top_k, Visualizer, write_pickle, pr_curve2
 from datasets.data_handler import load_data, load_pretrain_model
 import time
 import pickle
@@ -318,32 +318,36 @@ def test(**kwargs):
     query_labels = query_labels.to(opt.device)
     db_labels = db_labels.to(opt.device)
 
-    p_i2t, r_i2t = pr_curve(qBX, rBY, query_labels, db_labels)
-    p_t2i, r_t2i = pr_curve(qBY, rBX, query_labels, db_labels)
-    p_i2i, r_i2i = pr_curve(qBX, rBX, query_labels, db_labels)
-    p_t2t, r_t2t = pr_curve(qBY, rBY, query_labels, db_labels)
+    K = [1, 10, 100, 1000]
+    p_top_k(qBX, rBY, query_labels, db_labels, K, tqdm_label='I2T')
+    # pr_curve2(qBY, rBX, query_labels, db_labels)
 
-    K = [1, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000]
-    pk_i2t = p_topK(qBX, rBY, query_labels, db_labels, K)
-    pk_t2i = p_topK(qBY, rBX, query_labels, db_labels, K)
-    pk_i2i = p_topK(qBX, rBX, query_labels, db_labels, K)
-    pk_t2t = p_topK(qBY, rBY, query_labels, db_labels, K)
+    p_i2t, r_i2t = pr_curve(qBX, rBY, query_labels, db_labels, tqdm_label='I2T')
+    p_t2i, r_t2i = pr_curve(qBY, rBX, query_labels, db_labels, tqdm_label='T2I')
+    p_i2i, r_i2i = pr_curve(qBX, rBX, query_labels, db_labels, tqdm_label='I2I')
+    p_t2t, r_t2t = pr_curve(qBY, rBY, query_labels, db_labels, tqdm_label='T2T')
+
+    K = [1, 10, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000]
+    pk_i2t = p_top_k(qBX, rBY, query_labels, db_labels, K, tqdm_label='I2T')
+    pk_t2i = p_top_k(qBY, rBX, query_labels, db_labels, K, tqdm_label='T2I')
+    pk_i2i = p_top_k(qBX, rBX, query_labels, db_labels, K, tqdm_label='I2I')
+    pk_t2t = p_top_k(qBY, rBY, query_labels, db_labels, K, tqdm_label='T2T')
 
     mapi2t = calc_map_k(qBX, rBY, query_labels, db_labels)
     mapt2i = calc_map_k(qBY, rBX, query_labels, db_labels)
     mapi2i = calc_map_k(qBX, rBX, query_labels, db_labels)
     mapt2t = calc_map_k(qBY, rBY, query_labels, db_labels)
 
-    pr_dict = {'pi2t': p_i2t.numpy(), 'ri2t': r_i2t.numpy(),
-               'pt2i': p_t2i.numpy(), 'rt2i': r_t2i.numpy(),
-               'pi2i': p_i2i.numpy(), 'ri2i': r_i2i.numpy(),
-               'pt2t': p_t2t.numpy(), 'rt2t': r_t2t.numpy()}
+    pr_dict = {'pi2t': p_i2t.cpu().numpy(), 'ri2t': r_i2t.cpu().numpy(),
+               'pt2i': p_t2i.cpu().numpy(), 'rt2i': r_t2i.cpu().numpy(),
+               'pi2i': p_i2i.cpu().numpy(), 'ri2i': r_i2i.cpu().numpy(),
+               'pt2t': p_t2t.cpu().numpy(), 'rt2t': r_t2t.cpu().numpy()}
 
     pk_dict = {'k': K,
-               'pki2t': pk_i2t.numpy(),
-               'pkt2i': pk_t2i.numpy(),
-               'pki2i': pk_i2i.numpy(),
-               'pkt2t': pk_t2t.numpy()}
+               'pki2t': pk_i2t.cpu().numpy(),
+               'pkt2i': pk_t2i.cpu().numpy(),
+               'pki2i': pk_i2i.cpu().numpy(),
+               'pkt2t': pk_t2t.cpu().numpy()}
 
     map_dict = {'mapi2t': float(mapi2t.cpu().numpy()),
                 'mapt2i': float(mapt2i.cpu().numpy()),
