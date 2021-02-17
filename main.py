@@ -120,15 +120,17 @@ def train(**kwargs):
             # D_fake_feature = D_fake_feature.mean()
             D_fake_feature.backward()
 
-            # train with gradient penalty
+            # train with gradient penalty (GP)
+            # interpolate real and fake data
             alpha = torch.rand(batch_size, opt.hidden_dim//4).to(opt.device)
             interpolates = alpha * f_i.detach() + (1 - alpha) * f_t.detach()
             interpolates.requires_grad_()
             disc_interpolates = discriminator.dis_feature(interpolates)
+            # get gradients with respect to inputs
             gradients = autograd.grad(outputs=disc_interpolates, inputs=interpolates, grad_outputs=torch.ones(disc_interpolates.size()).to(opt.device), create_graph=True, retain_graph=True, only_inputs=True)[0]
             gradients = gradients.view(gradients.size(0), -1)
-            # 10 is gradient penalty hyperparameter
-            feature_gradient_penalty = ((gradients.norm(2, dim=1) - 1) ** 2).mean() * 10
+            # calculate penalty
+            feature_gradient_penalty = ((gradients.norm(2, dim=1) - 1) ** 2).mean() * 10 # 10 is GP hyperparameter
             feature_gradient_penalty.backward()
 
             optimizer_dis['feature'].step()
