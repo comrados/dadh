@@ -71,7 +71,7 @@ class Default(object):
             self.num_label = 31
             self.query_size = 2605
             self.text_dim = 768
-            self.training_size = 50000
+            self.training_size = 30000
 
     def parse(self, kwargs):
         """
