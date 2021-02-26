@@ -1,10 +1,10 @@
 #!/bin/bash
-#SBATCH -o /home/users/m/mikriukov/projects/dadh/out_gpu.log
+#SBATCH -o /home/users/m/mikriukov/projects/dadh/out_gpu_short.log
 #SBATCH -J dadh
 #SBATCH --ntasks=2
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=16G
-#SBATCH --partition=gpu
+#SBATCH --partition=gpu_short
 #SBATCH --time=24:00:00
 #SBATCH --gres=gpu:tesla:1
 
