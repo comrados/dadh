@@ -4,7 +4,7 @@
 #SBATCH --ntasks=2
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=16G
-#SBATCH --partition=$2
+#SBATCH --partition=gpu_short
 #SBATCH --time=24:00:00
 #SBATCH --gres=gpu:tesla:1
 
