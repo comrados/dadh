@@ -13,24 +13,24 @@ class Default(object):
     vis_port = 8097  # visdom port
     flag = 'mir'
 
-    batch_size = 256
+    batch_size = 128
     image_dim = 4096
-    hidden_dim = 2048
+    hidden_dim = 8192
     modals = 2
     valid = True  # whether to use validation
-    valid_freq = 1
-    max_epoch = 100
+    valid_freq = 50
+    max_epoch = 300
 
     bit = 64  # hash code length
-    lr = 0.0001  # initial learning rate
+    lr = 0.0006  # initial learning rate
 
     device = 'cuda:0'
     # device = 'cpu'
 
     # hyper-parameters
-    alpha = 0.1
-    gamma = 20
-    beta = 0.01
+    alpha = 10
+    gamma = 1
+    beta = 1
     mu = 0.00001
     lamb = 1
 
@@ -38,6 +38,10 @@ class Default(object):
     dropout = True
 
     proc = None
+
+    seed = 42
+    dataset_train_split = 0.5  # part of all data, that will be used for training
+    dataset_query_split = 0.2  # part of evaluation data, that will be used for query
 
     def data(self, flag):
         if flag == 'mir':
@@ -60,18 +64,37 @@ class Default(object):
             self.dataset = 'ucm'
             self.data_path = './data/UCM_resnet18_bert_sum_12.h5'
             self.db_size = 9450
-            self.num_label = 17
+            self.num_label = 21
             self.query_size = 1050
             self.text_dim = 768
+            self.image_dim = 512
             self.training_size = 5250
+
+            self.image_emb_for_model = "./data/image_emb_{}_aug_center_crop_only.h5".format(flag.upper())
+            self.caption_emb_for_model = "./data/caption_emb_{}_aug.h5".format(flag.upper())
+
+            self.image_emb_aug_for_model = "./data/image_emb_{}_aug_aug_center.h5".format(flag.upper())
+            self.caption_emb_aug_for_model = "./data/caption_emb_{}_aug_rb.h5".format(flag.upper())
+
+            self.dataset_json_for_model = "./data/augmented_{}.json".format(flag.upper())
         if flag == 'rsicd':
             self.dataset = 'rsicd'
-            self.data_path = './data/RSICD_resnet18_bert_sum_12.h5'
+            self.data_path = '/home/george/Downloads/RSICD_resnet18_bert_sum_12.h5'
             self.db_size = 52000
             self.num_label = 31
             self.query_size = 2605
             self.text_dim = 768
+            self.image_dim = 512
             self.training_size = 30000
+
+            # default for texts
+            self.image_emb_for_model = "./data/image_emb_{}_aug_center_crop_only.h5".format(flag.upper())
+            self.caption_emb_for_model = "./data/caption_emb_{}_aug.h5".format(flag.upper())
+
+            self.image_emb_aug_for_model = "./data/image_emb_{}_aug_aug_center.h5".format(flag.upper())
+            self.caption_emb_aug_for_model = "./data/caption_emb_{}_aug_rb.h5".format(flag.upper())
+
+            self.dataset_json_for_model = "./data/augmented_{}.json".format(flag.upper())
 
     def parse(self, kwargs):
         """
