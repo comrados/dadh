@@ -190,6 +190,56 @@ class DatasetQuadrupletAugmentedTxtImg(AbstractDataset):
         return len(self.images)
 
 
+class DatasetQuadrupletAugmentedTxtImgDouble(AbstractDataset):
+    """
+    Class for dataset representation.
+
+    Quadruplet dataset sample - img-img-txt-txt
+    """
+
+    def __init__(self, images, captions, labels, idxs, captions_aug=None, images_aug=None, seed=42):
+        """
+        Initialization
+
+        :param images: image embeddings vector
+        :param captions: captions embeddings vector
+        :param labels: labels vector
+        """
+        super().__init__(images, captions, labels, idxs, captions_aug, images_aug, seed)
+
+        caption_idxs = select_idxs(len(self.captions), 1, 5, seed=self.seed)[0]
+        self.captions = self.captions[caption_idxs]
+        self.captions_aug = self.captions_aug[caption_idxs]
+        self.idxs_cap = self.idxs_cap[caption_idxs]
+
+        self.images = np.vstack((self.images, self.images_aug))
+        self.labels = np.hstack((self.labels, self.labels))
+        self.idxs = np.hstack((np.array(self.idxs), np.array(self.idxs)))
+        self.captions = np.vstack((self.captions, self.captions_aug))
+        self.idxs_cap = np.hstack((np.array(self.idxs_cap), np.array(self.idxs_cap)))
+        print()
+
+    def __getitem__(self, index):
+        """
+        Returns a tuple (img1, img2, txt1, txt2, label)
+
+        :param index: index of sample
+        :return: tuple (img1, img2, txt1, txt2, label)
+        """
+        return (
+            index,
+            (self.idxs[index], self.idxs[index], self.idxs_cap[index], self.idxs_cap[index]),
+            torch.from_numpy(self.images[index].astype('float32')),
+            0,
+            torch.from_numpy(self.captions[index].astype('float32')),
+            0,
+            self.labels[index]
+        )
+
+    def __len__(self):
+        return len(self.images)
+
+
 class DatasetQuadrupletAugmentedImg(AbstractDataset):
     """
     Class for dataset representation.

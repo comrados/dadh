@@ -13,7 +13,7 @@ class Default(object):
     vis_port = 8097  # visdom port
     flag = 'mir'
 
-    batch_size = 128
+    batch_size = 256
     image_dim = 4096
     hidden_dim = 8192
     modals = 2
@@ -37,11 +37,13 @@ class Default(object):
     margin = 0.4
     dropout = True
 
-    proc = None
+    proc = 'test'
 
     seed = 42
     dataset_train_split = 0.5  # part of all data, that will be used for training
     dataset_query_split = 0.2  # part of evaluation data, that will be used for query
+
+    use_aug_data = False
 
     def data(self, flag):
         if flag == 'mir':
@@ -109,6 +111,11 @@ class Default(object):
                 self.device = v
             if k == 'bit':
                 self.bit = int(v)
+            if k == 'device':
+                self.device = 'cuda:{}'.format(str(int(v)))
+            if k == 'augdata':
+                self.use_aug_data = True
+                self.proc = self.proc + 'augdata'
             if not hasattr(self, k):
                 warnings.warn("Warning: opt has no attribute %s" % k)
             setattr(self, k, v)

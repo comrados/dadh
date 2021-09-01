@@ -18,6 +18,39 @@ from dataset.dataset_ucm import *
 from torch.nn.functional import one_hot
 
 
+def logger():
+    """
+    Instantiate logger
+
+    :return:
+    """
+    import logging
+
+    logger = logging.getLogger('train')
+    logger.setLevel(logging.INFO)
+
+    log_name = 'log.txt'
+    log_dir = './logs'
+    if not os.path.exists(log_dir):
+        os.makedirs(log_dir)
+
+    txt_log = logging.FileHandler(os.path.join(log_dir, log_name))
+    txt_log.setLevel(logging.INFO)
+    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+    txt_log.setFormatter(formatter)
+    logger.addHandler(txt_log)
+
+    stream_log = logging.StreamHandler()
+    stream_log.setLevel(logging.INFO)
+    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+    stream_log.setFormatter(formatter)
+    logger.addHandler(stream_log)
+
+    return logger
+
+log = logger()
+
+
 def stack_idxs(idxs, idxs_batch):
     if len(idxs) == 0:
         return [ib for ib in idxs_batch]
@@ -115,7 +148,7 @@ def calc_maps_k_glob(qBX, qBY, rBX, rBY, qLX, qLY, rLX, rLY, k):
     mapi2t, mapt2i, mapi2i, mapt2t, mapavg = mapi2t.item(), mapt2i.item(), mapi2i.item(), mapt2t.item(), avg
 
     s = 'Valid: mAP@{:2d}, avg: {:3.3f}, i->t: {:3.3f}, t->i: {:3.3f}, i->i: {:3.3f}, t->t: {:3.3f}'
-    print(s.format(k, mapavg, mapi2t, mapt2i, mapi2i, mapt2t))
+    log.info(s.format(k, mapavg, mapi2t, mapt2i, mapi2i, mapt2t))
 
     return mapi2t, mapt2i, mapi2i, mapt2t, mapavg
 
@@ -130,7 +163,7 @@ def calc_maps_rad_glob(qBX, qBY, rBX, rBY, qLX, qLY, rLX, rLY, rs):
 
     s = 'Valid: mAP HR{}, i->t: {:3.3f}, t->i: {:3.3f}, i->i: {:3.3f}, t->t: {:3.3f}'
     for r in rs:
-        print(s.format(r, mapsi2t[r], mapst2i[r], mapsi2i[r], mapst2t[r]))
+        log.info(s.format(r, mapsi2t[r], mapst2i[r], mapsi2i[r], mapst2t[r]))
 
     return mapsi2t, mapst2i, mapsi2i, mapst2t
 
@@ -149,7 +182,7 @@ def calc_p_top_k_glob(qBX, qBY, rBX, rBY, qLX, qLY, rLX, rLY):
                'pki2i': pk_i2i,
                'pkt2t': pk_t2t}
 
-    print('P@K values: {}'.format(pk_dict))
+    log.info('P@K values: {}'.format(pk_dict))
 
     return pk_dict
 
@@ -184,12 +217,20 @@ def train2(**kwargs):
     since = time.time()
     opt.parse(kwargs)
 
+    s = 'Init ({}): {}, {} bits, proc: {}, {}'
+    log.info(s.format('DADH', opt.flag.upper(), opt.bit, opt.proc, 'TRAIN'))
+
     if (opt.device is None) or (opt.device == 'cpu'):
         opt.device = torch.device('cpu')
     else:
         opt.device = torch.device(opt.device)
 
-    dl_train, dl_q, dl_db = get_dataloaders(DataHandlerAugmentedTxtImg, DatasetQuadrupletAugmentedTxtImg, DatasetDuplet1, DatasetDuplet1)
+    if opt.use_aug_data:
+        train_class = DatasetQuadrupletAugmentedTxtImgDouble
+    else:
+        train_class = DatasetQuadrupletAugmentedTxtImg
+
+    dl_train, dl_q, dl_db = get_dataloaders(DataHandlerAugmentedTxtImg, train_class, DatasetDuplet1, DatasetDuplet1)
 
     generator = GEN(opt.dropout, opt.image_dim, opt.text_dim, opt.hidden_dim, opt.bit, opt.num_label,
                     pretrain_model=None).to(opt.device)
@@ -213,18 +254,6 @@ def train2(**kwargs):
     loss = []
     losses = []
 
-    max_mapi2t = 0.
-    max_mapt2i = 0.
-    max_mapi2i = 0.
-    max_mapt2t = 0.
-    max_average = 0.
-
-    mapt2i_list = []
-    mapi2t_list = []
-    mapi2i_list = []
-    mapt2t_list = []
-    train_times = []
-
     dataset_size = len(dl_train.dataset)
     B_i = torch.randn(dataset_size, opt.bit).sign().to(opt.device)
     B_t = B_i
@@ -244,7 +273,7 @@ def train2(**kwargs):
         e_loss = 0
         e_losses = {'adv': 0, 'tri': 0, 'quant': 0}
         # for i, (ind, img, txt, label) in tqdm(enumerate(train_dataloader)):
-        for i, (ind, sampe_idx, img, img2, txt1, txt, label) in enumerate(dl_train):
+        for i, (ind, sampe_idx, img, img_aug, txt, txt_aug, label) in enumerate(dl_train):
             imgs = img.to(opt.device)
             txt = txt.to(opt.device)
             labels = one_hot(torch.tensor(label))
@@ -338,7 +367,7 @@ def train2(**kwargs):
             e_losses['adv'] += (opt.gamma * (loss_adver_feature + loss_adver_hash)).cpu().detach().numpy()
             e_losses['tri'] += (opt.alpha * weighted_cos_tri).cpu().detach().numpy()
             e_losses['quant'] += (opt.beta * loss_quant).cpu().detach().numpy()
-            # print((opt.alpha * weighted_cos_tri).cpu().detach().numpy(), (opt.beta * loss_quant).cpu().detach().numpy(), (opt.gamma * (loss_adver_feature + loss_adver_hash)).cpu().detach().numpy())
+            # log.info((opt.alpha * weighted_cos_tri).cpu().detach().numpy(), (opt.beta * loss_quant).cpu().detach().numpy(), (opt.gamma * (loss_adver_feature + loss_adver_hash)).cpu().detach().numpy())
 
             optimizer.zero_grad()
             err.backward()
@@ -357,12 +386,13 @@ def train2(**kwargs):
         B_t = (L @ P_t + opt.mu * H_t).sign()
 
         delta_t = time.time() - t1
-        print('Epoch: {:4d}/{:4d}, time, {:3.3f}s, loss: {:15.3f},'.format(epoch + 1, opt.max_epoch, delta_t,
-                                                                           loss[-1]) + 5 * ' ' + 'losses:', e_losses)
+        log.info('Epoch: {:4d}/{:4d}, time, {:3.3f}s, loss: {:15.3f},'.format(epoch + 1, opt.max_epoch, delta_t, loss[-1]) + 5 * ' ' + 'losses: {}'.format(str(e_losses)))
 
         # validate
 
         if opt.valid and (epoch + 1) % opt.valid_freq == 0:
+
+            generator.eval()
 
             qBX, qBY, rBX, rBY, qLX, qLY, rLX, rLY, indexes = get_codes_labels_indexes(generator, dl_q, dl_db)
 
@@ -391,6 +421,8 @@ def train2(**kwargs):
             with torch.cuda.device(opt.device):
                     torch.save([B_i, B_t], os.path.join(path, 'code_maps_i_t.pth'))
 
+            generator.train()
+
     if epoch % 100 == 0:
         for params in optimizer.param_groups:
             params['lr'] = max(params['lr'] * 0.8, 1e-6)
@@ -399,11 +431,10 @@ def train2(**kwargs):
         save_model(generator)
 
     time_elapsed = time.time() - since
-    print('\n   Training complete in {:.0f}m {:.0f}s'.format(time_elapsed // 60, time_elapsed % 60))
+    log.info('\n   Training complete in {:.0f}m {:.0f}s'.format(time_elapsed // 60, time_elapsed % 60))
 
-    if opt.valid:
-        s = 'Max Avg MAP: {avg:3.3f}, Max MAPs: i->t: {i2t:3.3f}, t->i: {t2i:3.3f}, i->i: {i2i:3.3f}, t->t: {t2t:3.3f}'
-        print(s.format(**maps_max))
+    s = 'Max Avg MAP: {avg:3.3f}, Max MAPs: i->t: {i2t:3.3f}, t->i: {t2i:3.3f}, i->i: {i2i:3.3f}, t->t: {t2t:3.3f}\n\n\n\n\n'
+    log.info(s.format(**maps_max))
 
 
     #write_pickle(os.path.join(path, 'res_dict.pkl'), res_dict)
@@ -578,7 +609,7 @@ def train(**kwargs):
             e_losses['adv'] += (opt.gamma * (loss_adver_feature + loss_adver_hash)).cpu().detach().numpy()
             e_losses['tri'] += (opt.alpha * weighted_cos_tri).cpu().detach().numpy()
             e_losses['quant'] += (opt.beta * loss_quant).cpu().detach().numpy()
-            # print((opt.alpha * weighted_cos_tri).cpu().detach().numpy(), (opt.beta * loss_quant).cpu().detach().numpy(), (opt.gamma * (loss_adver_feature + loss_adver_hash)).cpu().detach().numpy())
+            # log.info((opt.alpha * weighted_cos_tri).cpu().detach().numpy(), (opt.beta * loss_quant).cpu().detach().numpy(), (opt.gamma * (loss_adver_feature + loss_adver_hash)).cpu().detach().numpy())
 
             optimizer.zero_grad()
             err.backward()
@@ -597,14 +628,14 @@ def train(**kwargs):
         B_t = (L @ P_t + opt.mu * H_t).sign()
 
         delta_t = time.time() - t1
-        print('Epoch: {:4d}/{:4d}, time, {:3.3f}s, loss: {:15.3f},'.format(epoch + 1, opt.max_epoch, delta_t,
+        log.info('Epoch: {:4d}/{:4d}, time, {:3.3f}s, loss: {:15.3f},'.format(epoch + 1, opt.max_epoch, delta_t,
                                                                            loss[-1]) + 5 * ' ' + 'losses:', e_losses)
 
         # validate
         if opt.valid and (epoch + 1) % opt.valid_freq == 0:
             mapi2t, mapt2i, mapi2i, mapt2t = valid(generator, i_query_dataloader, i_db_dataloader, t_query_dataloader,
                                                    t_db_dataloader, query_labels, db_labels)
-            print(
+            log.info(
                 'Epoch: {:4d}/{:4d}, validation MAP: MAP(i->t) = {:3.4f}, MAP(t->i) = {:3.4f}, MAP(i->i) = {:3.4f}, MAP(t->t) = {:3.4f}'.format(
                     epoch + 1, opt.max_epoch, mapi2t, mapt2i, mapi2i, mapt2t))
 
@@ -638,15 +669,15 @@ def train(**kwargs):
         save_model(generator)
 
     time_elapsed = time.time() - since
-    print('\n   Training complete in {:.0f}m {:.0f}s'.format(time_elapsed // 60, time_elapsed % 60))
+    log.info('\n   Training complete in {:.0f}m {:.0f}s'.format(time_elapsed // 60, time_elapsed % 60))
 
     if opt.valid:
-        print('   Max MAP: MAP(i->t) = {:3.4f}, MAP(t->i) = {:3.4f}, MAP(i->i) = {:3.4f}, MAP(t->t) = {:3.4f}'.format(
+        log.info('   Max MAP: MAP(i->t) = {:3.4f}, MAP(t->i) = {:3.4f}, MAP(i->i) = {:3.4f}, MAP(t->t) = {:3.4f}'.format(
             max_mapi2t, max_mapt2i, max_mapi2i, max_mapt2t))
     else:
         mapi2t, mapt2i, mapi2i, mapt2t = valid(generator, i_query_dataloader, i_db_dataloader, t_query_dataloader,
                                                t_db_dataloader, query_labels, db_labels)
-        print('   Max MAP: MAP(i->t) = {:3.4f}, MAP(t->i) = {:3.4f}, MAP(i->i) = {:3.4f}, MAP(t->t) = {:3.4f}'.format(
+        log.info('   Max MAP: MAP(i->t) = {:3.4f}, MAP(t->i) = {:3.4f}, MAP(i->i) = {:3.4f}, MAP(t->t) = {:3.4f}'.format(
             mapi2t, mapt2i, mapi2i, mapt2t))
 
     res_dict = {'mapi2t': mapi2t_list,
@@ -757,7 +788,7 @@ def test(**kwargs):
                     'mapi2i': float(mapi2i.cpu().numpy()),
                     'mapt2t': float(mapt2t.cpu().numpy())}
 
-        print('   Test MAP: MAP(i->t) = {:3.4f}, MAP(t->i) = {:3.4f}, MAP(i->i) = {:3.4f}, MAP(t->t) = {:3.4f}'.format(
+        log.info('   Test MAP: MAP(i->t) = {:3.4f}, MAP(t->i) = {:3.4f}, MAP(i->i) = {:3.4f}, MAP(t->t) = {:3.4f}'.format(
             mapi2t, mapt2i, mapi2i, mapt2t))
 
         path = 'checkpoints/' + opt.dataset + '_' + str(opt.bit) + str(opt.proc)
@@ -807,6 +838,9 @@ def save_model(model):
 def test2(**kwargs):
     opt.parse(kwargs)
 
+    s = 'Init ({}): {}, {} bits, proc: {}, {}'
+    log.info(s.format('DADH', opt.flag.upper(), opt.bit, opt.proc, 'TEST'))
+
     if opt.device is not None:
         opt.device = torch.device(opt.device)
     elif opt.gpus:
@@ -837,6 +871,8 @@ def test2(**kwargs):
         map_r = calc_maps_rad_glob(qBX, qBY, rBX, rBY, qLX, qLY, rLX, rLY, [0, 1, 2, 3, 4, 5])
         p_at_k = calc_p_top_k_glob(qBX, qBY, rBX, rBY, qLX, qLY, rLX, rLY)
         maps_eval = (map_k_5, map_k_10, map_k_20, map_r, p_at_k)
+
+        generator.train()
 
 
 if __name__ == '__main__':
