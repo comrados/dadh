@@ -261,7 +261,7 @@ def train2(**kwargs):
     H_t = torch.zeros(dataset_size, opt.bit).to(opt.device)
 
     L = dl_train.dataset.labels
-    L = one_hot(torch.tensor(L))
+    L = one_hot(torch.tensor(L), num_classes=opt.num_label)
     L = L.to(opt.device).float()
 
     path = 'checkpoints/' + opt.dataset + '_' + str(opt.bit) + str(opt.proc)
@@ -273,10 +273,10 @@ def train2(**kwargs):
         e_loss = 0
         e_losses = {'adv': 0, 'tri': 0, 'quant': 0}
         # for i, (ind, img, txt, label) in tqdm(enumerate(train_dataloader)):
-        for i, (ind, sampe_idx, img, img_aug, txt, txt_aug, label) in enumerate(dl_train):
+        for i, (ind, sample_idx, img, img_aug, txt, txt_aug, label) in enumerate(dl_train):
             imgs = img.to(opt.device)
             txt = txt.to(opt.device)
-            labels = one_hot(torch.tensor(label))
+            labels = one_hot(torch.tensor(label), num_classes=opt.num_label)
             labels = labels.to(opt.device).float()
 
             batch_size = len(ind)
@@ -423,9 +423,9 @@ def train2(**kwargs):
 
             generator.train()
 
-    if epoch % 100 == 0:
-        for params in optimizer.param_groups:
-            params['lr'] = max(params['lr'] * 0.8, 1e-6)
+        if epoch % 100 == 0:
+            for params in optimizer.param_groups:
+                params['lr'] = max(params['lr'] * 0.8, 1e-6)
 
     if not opt.valid:
         save_model(generator)

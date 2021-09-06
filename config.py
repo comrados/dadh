@@ -18,7 +18,7 @@ class Default(object):
     hidden_dim = 8192
     modals = 2
     valid = True  # whether to use validation
-    valid_freq = 50
+    valid_freq = 100
     max_epoch = 300
 
     bit = 64  # hash code length
